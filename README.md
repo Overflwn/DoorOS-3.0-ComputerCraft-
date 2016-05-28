@@ -1,2 +1,9 @@
 # DoorOS-3.0-ComputerCraft-
 Third Version of DoorOS, this time without an external API again (like the first one)
+
+Main Goals:
+- Multi-Language support
+- kind-of Multitasking (my idea: pausing and resuming with the parallel API)
+- easy installation of programs
+- additional program to make a project/program and compile it to a installer when finished
+- try to support programs like Firewolf and Quest.
