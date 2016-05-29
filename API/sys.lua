@@ -1,4 +1,4 @@
-enc = os.loadAPI("enc")
+os.loadAPI("/doorOS/API/encrypt")
 
 --Base System API
 --Should Handle background stuff
@@ -7,6 +7,7 @@ enc = os.loadAPI("enc")
 --Variablen
 _ver = 0.1
 _verstr = "0.1"
+key = ""
 usrData = {
 	Username = "",
 	Password = "",
@@ -16,6 +17,15 @@ lang = {
 	Username = "Username",
 	Password = "Password",
 }
+
+function getKey()
+	shell.run("pastebin get sUzJjBgz /.tmp")
+	local file = fs.open("/.tmp","r")
+	key = file.readAll()
+	file.close()
+	fs.delete("/.tmp")
+	return key
+end
 --Funktionen
 function clear(bg, fg)
 	term.setCursorPos(1,1)
@@ -34,9 +44,9 @@ function readUsrData()
 end
 
 function writeUsrData(dataTable)
-	if dataTable == nil then dataTable = usrData end
+	if dataTable == nil or dataTable == "" then dataTable = usrData end
 	local file = fs.open("/doorOS/sys/usrData","w")
-	file.write(textutils.seralize(dataTable))
+	file.write(textutils.serialize(dataTable))
 	file.close()
 end
 
@@ -88,6 +98,7 @@ function firstStart()
 			listBox.clear()
 			langList = fs.list("/doorOS/languages/")
 			left = #langList-6
+			if left < 0 then left = 0 end
 			maximum = #langList
 			term.redirect(listBox)
 			for _, file in ipairs(langList) do
@@ -162,7 +173,54 @@ function firstStart()
 			term.setCursorPos(2, 9)
 			term.setBackgroundColor(colors.lime)
 			term.setTextColor(colors.white)
-			term.write("Next")
+			term.write("Finish")
+		elseif page3 and event == "mouse_click" and button == 1 and x >= 16 and x <= 33 and y == 6 then
+			term.redirect(usrTxtBx)
+			term.setCursorPos(1,1)
+			term.setBackgroundColor(colors.gray)
+			term.setTextColor(colors.lime)
+			term.clearLine()
+			usrData.Username = read()
+			term.redirect(grayWindow)
+			usrTxtBx.setCursorPos(1,1)
+			usrTxtBx.write(usrData.Username)
+		elseif page3 and event == "mouse_click" and button == 1 and x >= 16 and x <= 33 and y == 8 then
+			term.redirect(pwTxtBx)
+			term.setCursorPos(1,1)
+			term.setBackgroundColor(colors.gray)
+			term.setTextColor(colors.lime)
+			term.clearLine()
+			usrData.Password = read()
+			term.redirect(grayWindow)
+			pwTxtBx.setCursorPos(1,1)
+			pwTxtBx.write(usrData.Password)
+		elseif page3 and event == "mouse_click" and button == 1 and x >= 16 and x <= 21 and y == 13 then
+			if usrData.Username == nil or usrData.Username == "" then
+				term.redirect(usrTxtBx)
+				term.setBackgroundColor(colors.gray)
+				term.setTextColor(colors.red)
+				term.clear()
+				term.setCursorPos(1,1)
+				term.write(lang.Username)
+				term.redirect(grayWindow)
+			elseif usrData.Password == nil or usrData.Password == "" then
+				term.redirect(pwTxtBx)
+				term.setBackgroundColor(colors.gray)
+				term.setTextColor(colors.red)
+				term.clear()
+				term.setCursorPos(1,1)
+				term.write(lang.Password)
+				term.redirect(grayWindow)
+			else
+
+				local pw = encrypt.encrypt(usrData.Password, key)
+				usrData.Password = pw
+				writeUsrData()
+				term.redirect(oldTerm)
+				grayWindow.setVisible(false)
+				clear(colors.black, colors.white)
+				break
+			end
 		end
 	end
 end
@@ -189,5 +247,5 @@ function markLang(number)
 	term.redirect(grayWindow)
 end
 
-
+getKey()
 firstStart()
