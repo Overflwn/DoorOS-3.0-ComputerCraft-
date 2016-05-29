@@ -5,8 +5,8 @@ os.loadAPI("/doorOS/API/encrypt")
 --e.g. first start, loading and decrypting user stuff, etc.
 
 --Variablen
-_ver = 0.1
-_verstr = "0.1"
+_ver = 0.9
+_verstr = "0.9"
 key = ""
 usrData = {
 	Username = "",
