@@ -1,3 +1,5 @@
+
+
 os.loadAPI("/doorOS/API/encrypt")
 
 --Base System API
@@ -5,8 +7,8 @@ os.loadAPI("/doorOS/API/encrypt")
 --e.g. first start, loading and decrypting user stuff, etc.
 
 --Variablen
-_ver = 0.9
-_verstr = "0.9"
+_versys = 0.9
+_verstrsys = "0.9"
 key = ""
 usrData = {
 	Username = "",
@@ -24,9 +26,10 @@ function getKey()
 	key = file.readAll()
 	file.close()
 	fs.delete("/.tmp")
-	return key
 end
+
 --Funktionen
+
 function clear(bg, fg)
 	term.setCursorPos(1,1)
 	term.setBackgroundColor(bg)
@@ -37,7 +40,7 @@ end
 function readUsrData()
 	local file = fs.open("/doorOS/sys/usrData","r")
 	local inhalt = file.readAll()
-	local inhalt = textutils.unseralize(inhalt)
+	local inhalt = textutils.unserialize(inhalt)
 	usrData = inhalt
 	file.close()
 	return usrData
@@ -247,5 +250,10 @@ function markLang(number)
 	term.redirect(grayWindow)
 end
 
-getKey()
-firstStart()
+--Code
+local args = {...}
+
+if args[1] == "firstrun" then
+	getKey()
+	firstStart()
+end
