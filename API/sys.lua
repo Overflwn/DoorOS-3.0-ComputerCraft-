@@ -12,6 +12,10 @@ usrData = {
 	Password = "",
 	Language = "",
 }
+lang = {
+	Username = "Username",
+	Password = "Password",
+}
 --Funktionen
 function clear(bg, fg)
 	term.setCursorPos(1,1)
@@ -29,10 +33,18 @@ function readUsrData()
 	return usrData
 end
 
-function writeUsrData()
+function writeUsrData(dataTable)
+	if dataTable == nil then dataTable = usrData end
 	local file = fs.open("/doorOS/sys/usrData","w")
-	file.write(textutils.seralize(usrData))
+	file.write(textutils.seralize(dataTable))
 	file.close()
+end
+
+function loadLanguage(languageFile)
+	local file = fs.open("/doorOS/languages/"..languageFile, "r")
+	local inhalt = file.readAll()
+	lang = textutils.unserialize(inhalt)
+	return lang
 end
 
 function firstStart()
@@ -125,6 +137,32 @@ function firstStart()
 			local y = y-5
 			selected = missing+y
 			markLang(selected)
+			usrData.Language = langList[selected]
+		elseif page2 and event == "mouse_click" and button == 1 and x >= 16 and x <= 19 and y == 13 and selected == 0 then
+			term.setCursorPos(6, 9)
+			term.setBackgroundColor(colors.lightGray)
+			term.setTextColor(colors.red)
+			term.write("Please select.")
+		elseif page2 and event == "mouse_click" and button == 1 and x >= 16 and x <= 19 and y == 13 and selected > 0 then
+			loadLanguage(usrData.Language)
+			page2 = false
+			listBox.setVisible(false)
+			clear(colors.lightGray, colors.white)
+			page3 = true
+			usrTxtBx = window.create(term.current(), 2, 2, 18, 1)
+			usrTxtBx.setBackgroundColor(colors.gray)
+			usrTxtBx.setTextColor(colors.lime)
+			usrTxtBx.clear()
+			usrTxtBx.write(lang.Username)
+			pwTxtBx = window.create(term.current(), 2, 4, 18, 1)
+			pwTxtBx.setBackgroundColor(colors.gray)
+			pwTxtBx.setTextColor(colors.lime)
+			pwTxtBx.clear()
+			pwTxtBx.write(lang.Password)
+			term.setCursorPos(2, 9)
+			term.setBackgroundColor(colors.lime)
+			term.setTextColor(colors.white)
+			term.write("Next")
 		end
 	end
 end
@@ -148,6 +186,7 @@ function markLang(number)
 		term.setBackgroundColor(colors.gray)
 		counter = counter+1
 	until counter == 7
+	term.redirect(grayWindow)
 end
 
 
