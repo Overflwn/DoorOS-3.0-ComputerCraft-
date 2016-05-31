@@ -1,4 +1,4 @@
-dec = os.loadAPI("/doorOS/API/encrypt")
+os.loadAPI("/doorOS/API/encrypt")
 os.loadAPI("/doorOS/API/sys")
 
 --Main OS 
@@ -32,25 +32,43 @@ function drawLogin()
 	usrTxtBx.setBackgroundColor(colors.gray)
 	usrTxtBx.setTextColor(colors.lime)
 	usrTxtBx.clear()
-	usrTxtBx.write(lang.Username)
+	usrTxtBx.write(usrData.Username)
 	pwTxtBx = window.create(term.current(), 2, 4, 18, 1)
 	pwTxtBx.setBackgroundColor(colors.gray)
 	pwTxtBx.setTextColor(colors.lime)
 	pwTxtBx.clear()
 	pwTxtBx.write(lang.Password)
-	term.setCursorPos(2,8)
+	term.setCursorPos(2,9)
 	term.setBackgroundColor(colors.lime)
 	term.setTextColor(colors.white)
 	term.write(" > ")
 	local login = true
 	while login do
 		local event, button, x, y = os.pullEvent("mouse_click")
-		if button == 1 and x >= 16 and x <= 33 and y == 6 then
-			term.redirect(usrTxtBx)
+		if button == 1 and x >= 16 and x <= 33 and y == 8 then
+			term.redirect(pwTxtBx)
 			term.setCursorPos(1,1)
 			term.clear()
-			tmpUsrNm = sys.limitRead(18)
+			tmpPw = sys.limitRead(18, "*")
 			term.redirect(loginWindow)
+		elseif button == 1 and x >= 16 and x <= 18 and y == 13 then
+			if tmpPw == "" or tmpPw == nil then
+				pwTxtBx.setCursorPos(1,1)
+				pwTxtBx.clear()
+				pwTxtBx.setTextColor(colors.red)
+				pwTxtBx.write(lang.PlsFill)
+				pwTxtBx.setTextColor(colors.lime)
+			elseif tmpPw == usrData.Password then
+				break
+				--loadDesktop
+			else
+				pwTxtBx.setCursorPos(1,1)
+				pwTxtBx.clear()
+				pwTxtBx.setTextColor(colors.red)
+				pwTxtBx.write(lang.WrongPW)
+				pwTxtBx.setTextColor(colors.lime)
+			end
+
 		end 
 	end
 end
@@ -133,6 +151,7 @@ if fs.exists("/doorOS/sys/usrData") then
 	print(usrData.Language)
 	lang = sys.loadLanguage(usrData.Language)
 	loadKey()
+	usrData.Password = encrypt.decrypt(usrData.Password, key)
 	drawLogin()
 else
 	shell.run("/doorOS/API/sys firstrun")
