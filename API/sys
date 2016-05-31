@@ -60,6 +60,34 @@ function loadLanguage(languageFile)
 	return lang
 end
 
+
+function limitRead(nLimit, replaceChar)
+    term.setCursorBlink(true)
+    local cX, cY = term.getCursorPos()
+    local rString = ""
+    if replaceChar == "" then replaceChar = nil end
+    repeat
+        local event, p1 = os.pullEvent()
+        if event == "char" then
+            -- Character event
+            if #rString + 1 <= nLimit then
+                rString = rString .. p1
+                write(replaceChar or p1)
+            end
+        elseif event == "key" and p1 == keys.backspace and #rString >= 1 then
+            -- Backspace
+            rString = string.sub(rString, 1, #rString-1)
+            xPos, yPos = term.getCursorPos()
+            term.setCursorPos(xPos-1, yPos)
+            write(" ")
+            term.setCursorPos(xPos-1, yPos)
+        end
+    until event == "key" and p1 == keys.enter
+    term.setCursorBlink(false)
+    --print() -- Skip to the next line after clicking enter.
+    return rString
+end
+
 function firstStart()
 	missing = 0
 	left = 0
@@ -183,20 +211,16 @@ function firstStart()
 			term.setBackgroundColor(colors.gray)
 			term.setTextColor(colors.lime)
 			term.clearLine()
-			usrData.Username = read()
+			usrData.Username = limitRead(18)
 			term.redirect(grayWindow)
-			usrTxtBx.setCursorPos(1,1)
-			usrTxtBx.write(usrData.Username)
 		elseif page3 and event == "mouse_click" and button == 1 and x >= 16 and x <= 33 and y == 8 then
 			term.redirect(pwTxtBx)
 			term.setCursorPos(1,1)
 			term.setBackgroundColor(colors.gray)
 			term.setTextColor(colors.lime)
 			term.clearLine()
-			usrData.Password = read()
+			usrData.Password = limitRead(18, "*")
 			term.redirect(grayWindow)
-			pwTxtBx.setCursorPos(1,1)
-			pwTxtBx.write(usrData.Password)
 		elseif page3 and event == "mouse_click" and button == 1 and x >= 16 and x <= 21 and y == 13 then
 			if usrData.Username == nil or usrData.Username == "" then
 				term.redirect(usrTxtBx)
