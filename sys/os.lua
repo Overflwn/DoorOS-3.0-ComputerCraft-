@@ -293,6 +293,7 @@ function drawWindow(app, windownumber, new)
 		coroutine.resume(tasks[progNumber], unpack(evt))
 		evt = {os.pullEvent()}
 
+		if evt[1] == "key" and evt[2] == 211 then
 			redrawDesktop()
 			running = false
 			break
