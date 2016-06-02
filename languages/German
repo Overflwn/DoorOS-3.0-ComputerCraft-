@@ -3,5 +3,6 @@
 	Password = "Passwort",
 	PlsFill = "Bitte ausfuellen.",
 	WrongPW = "Falsches Passwort",
-	SearchApp = "Suche App..."
+	SearchApp = "Suche App...",
+	Run = "Start",
 }
