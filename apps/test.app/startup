@@ -1,0 +1,4 @@
+print("Hello")
+while true do
+	read()
+end
