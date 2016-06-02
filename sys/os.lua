@@ -27,6 +27,7 @@ progList = {}
 selectedProg = 0
 tasks = {}
 taskWindows = {}
+selectedTask = 0
 --Funktionen
 
 function drawLogin()
@@ -101,13 +102,15 @@ function drawDesktop()
 	term.write(" @ ")
 	desktop = true
 	startmenu = false
+	taskmanager = false
 	while desktop do
 		local event, button, x, y = os.pullEventRaw()
 		if event == "mouse_click" and button == 1 and x >= 1 and x <= 3 and y == 1 then
 			if startmenu then
-				drawDesktop()
+				redrawDesktop()
 				startmenu = false
 				searchB = false
+				taskmgr = false
 			else
 				redrawStartup()
 				startmenu = true
@@ -151,6 +154,53 @@ function drawDesktop()
 			missing = missing-1
 			left = left+1
 			term.redirect(desktopWindow)
+		elseif event == "mouse_scroll" and button == 1 and taskLeft > 0 and x >= 17 and x <= 50 and y >= 3 and y <= 18 and taskmgr then
+			term.redirect(tasklist)
+			term.setTextColor(colors.lime)
+			term.setBackgroundColor(colors.gray)
+			term.scroll(1)
+			term.setCursorPos(1, 16)
+			term.write(tasks[taskMissing+16+1])
+			term.setCursorPos(34, 16)
+			term.setBackgroundColor(colors.red)
+			term.setTextColor(colors.white)
+			term.write("X")
+			term.setCursorPos(33, 16)
+			term.setBackgroundColor(colors.blue)
+			term.write(">")
+			taskMissing = taskMissing+1
+			taskLeft = taskLeft-1
+			term.redirect(oldTerm)
+		elseif event == "mouse_scroll" and button == 1 and taskMissing > 0 and x >= 17 and x <= 50 and y >= 3 and y <= 18 and taskmgr then
+			term.redirect(tasklist)
+			term.setBackgroundColor(colors.gray)
+			term.setTextColor(colors.lime)
+			term.scroll(-1)
+			term.setCursorPos(1, 1)
+			term.write(tasks[taskMissing])
+			term.setCursorPos(34, 16)
+			term.setBackgroundColor(colors.red)
+			term.setTextColor(colors.white)
+			term.write("X")
+			term.setCursorPos(33, 16)
+			term.setBackgroundColor(colors.blue)
+			term.write(">")
+			taskMissing = taskMissing-1
+			taskLeft = taskLeft+1
+			term.redirect(oldTerm)
+		elseif event == "mouse_click" and taskmgr and button == 1 and x == 50 and y >= 3 and y <= 18 then
+			local y = y-2
+			if taskMissing+y <= taskMaximum then
+				tasks[taskMissing+y] = nil
+				taskWindows[taskMissing+y] = nil
+				drawTaskManager()
+			end
+		elseif event == "mouse_click" and taskmgr and button == 1 and x == 49 and y >= 3 and y <= 18 then
+			local y = y-2
+			if taskMissing+y <= taskMaximum then
+				local program = tasks[taskMissing+y]
+				drawWindow(program, program)
+			end
 		elseif event == "mouse_click" and button == 1 and x >= 2 and x <= 14 and y >= 5 and y <= 17 and searchB and maximum > 0 then
 			local y = y-4
 			local sel = missing+y
@@ -172,18 +222,27 @@ function drawDesktop()
 			desktop = false
 			term.redirect(oldTerm)
 			local progNumber = "Fill"
+			if #tasks == 0 then tasks[1] = "Fill" end
 			for _, program in ipairs(tasks) do
 				if program == progList[selectedProg] then
 					progNumber = progList[selectedProg]
 					new = false
 					break
+				elseif program == "Fill" then
+					progNumber = progList[selectedProg]
+					new = true
+					tasks[1] = nil
 				end
 				progNumber = progList[selectedProg]
 				new = true
 			end
 			if new == false then
-				local program = progList[selectedProg]
-				drawWindow(program, program, false)
+				for _, program in ipairs(tasks) do
+					if program == progList[selectedProg] then
+						drawWindow(program, program)
+					end
+				end
+
 			else
 				local program = progList[selectedProg]
 				table.insert(taskWindows, progList[selectedProg])
@@ -196,8 +255,7 @@ function drawDesktop()
 						taskWindows[program].setTextColor(colors.white)
 						taskWindows[program].setCursorPos(1,1)
 						taskWindows[program].clear()
-						drawWindow(program, program, true)
-						break
+						drawWindow(program, program)
 					end
 				end
 				--[[table.insert(taskWindows, "test")
@@ -215,6 +273,9 @@ function drawDesktop()
 					end
 				end]]
 			end
+		elseif event == "mouse_click" and searchB and x == 10 and y == 19 and button == 1 then
+			drawTaskManager()
+			taskmgr = true
 		end
 	end
 end
@@ -276,7 +337,43 @@ function reSearch(eingabe)
 	term.redirect(oldTerm)
 end
 
-function drawWindow(app, windownumber, new)
+function drawTaskManager()
+	taskmanager = window.create(oldTerm, 16, 2, 36, 18)
+	taskmanager.setBackgroundColor(colors.lightGray)
+	taskmanager.setTextColor(colors.white)
+	taskmanager.clear()
+	term.redirect(taskmanager)
+	tasklist = window.create(taskmanager, 2, 2, 34, 16)
+	tasklist.setBackgroundColor(colors.gray)
+	tasklist.setTextColor(colors.lime)
+	tasklist.clear()
+	term.redirect(tasklist)
+	term.setCursorPos(1,1)
+	taskMissing = 0
+	taskLeft = #tasks-16
+	taskMaximum = #tasks
+	taskmgr = true
+	for _, program in ipairs(tasks) do
+		if _ == 17 then
+			break
+		else
+			term.write(program)
+			local x, y = term.getCursorPos()
+			term.setCursorPos(34, y)
+			term.setBackgroundColor(colors.red)
+			term.write("X")
+			term.setCursorPos(33, y)
+			term.setBackgroundColor(colors.blue)
+			term.write(">")
+			term.setBackgroundColor(colors.gray)
+			term.setCursorPos(1, y+1)
+			
+		end
+	end
+
+end
+
+function drawWindow(app, windownumber)
 	taskWindows[app].redraw()
 	term.redirect(taskWindows[app])
 	local progNumber = 0
@@ -322,8 +419,13 @@ function redrawStartup()
 	searchBox.setBackgroundColor(colors.gray)
 	searchBox.setTextColor(colors.white)
 	searchBox.clear()
+	startmenu.setCursorPos(10, 18)
+	startmenu.setBackgroundColor(colors.gray)
+	startmenu.setTextColor(colors.lime)
+	startmenu.write("T")
 	if selectedProg > 0 then
 		startmenu.setCursorPos(2, 17)
+		startmenu.setBackgroundColor(colors.cyan)
 		startmenu.setTextColor(colors.white)
 		startmenu.write(progList[selectedProg])
 	end
