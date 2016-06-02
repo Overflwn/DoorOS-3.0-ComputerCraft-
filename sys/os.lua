@@ -18,7 +18,14 @@ lang = {
 	
 }
 oldTerm = term.native()
+wallpaper = paintutils.loadImage("/doorOS/sys/wllppr")
+missing = 0
+left = 0
+maximum = 0
+search = ""
+progList = {}
 
+tasks = {}
 --Funktionen
 
 function drawLogin()
@@ -59,8 +66,12 @@ function drawLogin()
 				pwTxtBx.write(lang.PlsFill)
 				pwTxtBx.setTextColor(colors.lime)
 			elseif tmpPw == usrData.Password then
-				break
-				--loadDesktop
+				login = false
+				term.redirect(oldTerm)
+				loginWindow.setVisible(false)
+				pwTxtBx.setVisible(false)
+				usrTxtBx.setVisible(false)
+				drawDesktop()
 			else
 				pwTxtBx.setCursorPos(1,1)
 				pwTxtBx.clear()
@@ -71,6 +82,148 @@ function drawLogin()
 
 		end 
 	end
+end
+
+function drawRightWindow()
+
+end
+
+function drawDesktop()
+	clear(colors.black, colors.white)
+	paintutils.drawImage(wallpaper, 1, 1)
+	term.setCursorPos(1,1)
+	term.setBackgroundColor(colors.lightGray)
+	term.setTextColor(colors.white)
+	term.clearLine()
+	term.setBackgroundColor(colors.gray)
+	term.write(" @ ")
+	desktop = true
+	startmenu = false
+	while desktop do
+		local event, button, x, y = os.pullEventRaw()
+		if event == "mouse_click" and button == 1 and x >= 1 and x <= 3 and y == 1 then
+			if startmenu then
+				redrawDesktop()
+				startmenu = false
+				searchB = false
+			else
+				redrawStartup()
+				startmenu = true
+			end
+		elseif event == "mouse_click" and button == 1 and x >= 2 and x <= 14 and y == 3 and searchB then
+			term.redirect(searchBar)
+			term.setCursorPos(1,1)
+			term.clear()
+			searchBox.clear()
+			search = sys.limitRead(13)
+			reSearch(search)
+			term.redirect(oldTerm)
+
+		elseif event == "mouse_scroll" and button == 1 and x >= 2 and x <= 14 and y >= 5 and y <= 17 and searchB and left > 0 then
+			term.redirect(searchBox)
+			term.scroll(1)
+			term.setCursorPos(1,13)
+			term.write(progList[missing+13+1])
+			missing = missing+1
+			left = left-1
+			term.redirect(oldTerm)
+		elseif event == "mouse_scroll" and button == -1 and x >= 2 and x <= 14 and y >= 6 and y <= 18 and searchB and missing > 0 then
+			term.redirect(searchBox)
+			term.scroll(-1)
+			term.setCursorPos(1,1)
+			term.write(progList[missing])
+			missing = missing-1
+			left = left+1
+			term.redirect(oldTerm)
+
+		end
+	end
+end
+
+function reSearch(eingabe)
+	local last = term.current()
+	term.redirect(searchBox)
+	if eingabe == "" then eingabe = nil end
+	progListRaw = fs.list("/doorOS/apps/")
+	progList = {}
+	term.clear()
+	for _, folder in ipairs(progListRaw) do
+		local name, extension = string.match(folder, "(.*)%.(.*)")
+		if extension == "app" then
+			if name:match(eingabe) == eingabe then
+
+				table.insert(progList, name)
+			end
+		end
+	end
+	left = #progList-13
+	if left < 0 then left = 0 end
+	maximum = #progList
+	term.setCursorPos(1,1)
+	for _, file in ipairs(progList) do
+		if _ == 14 then
+			break
+		else
+			term.write(file)
+			local x, y = term.getCursorPos()
+			term.setCursorPos(1, y+1)
+
+		end
+	end
+	term.redirect(oldTerm)
+end
+
+function redrawStartup()
+	startmenu = window.create(oldTerm, 1, 2, 15, 18)
+	startmenu.setBackgroundColor(colors.cyan)
+	startmenu.setTextColor(colors.black)
+	startmenu.clear()
+	searchB = true
+	searchBar = window.create(startmenu, 2, 2, 13, 1)
+	searchBar.setBackgroundColor(colors.gray)
+	searchBar.setTextColor(colors.lime)
+	searchBar.clear()
+	searchBar.write(lang.SearchApp)
+	searchBox = window.create(startmenu, 2, 4, 13, 13)
+	searchBox.setBackgroundColor(colors.gray)
+	searchBox.setTextColor(colors.white)
+	searchBox.clear()
+	progListRaw = fs.list("/doorOS/apps/")
+	progList = {}
+	for _, folder in ipairs(progListRaw) do
+		local name, extension = string.match(folder, "(.*)%.(.*)")
+		if extension == "app" then
+			table.insert(progList, name)
+		end
+	end
+	left = #progList-13
+	if left < 0 then left = 0 end
+	maximum = #progList
+	term.redirect(searchBox)
+	term.setTextColor(colors.lime)
+	term.setBackgroundColor(colors.gray)
+	for _, file in ipairs(progList) do
+		if _ == 14 then
+			break
+		else
+			term.write(file)
+			local x, y = term.getCursorPos()
+			term.setCursorPos(1, y+1)
+		end
+	end
+	term.redirect(oldTerm)
+end
+
+function redrawDesktop()
+	clear(colors.black, colors.white)
+	paintutils.drawImage(wallpaper, 1, 1)
+	term.setCursorPos(1,1)
+	term.setBackgroundColor(colors.lightGray)
+	term.setTextColor(colors.white)
+	term.clearLine()
+	term.setBackgroundColor(colors.gray)
+	term.write(" @ ")
+	desktop = true
 end
 
 function readd(replaceChar)
