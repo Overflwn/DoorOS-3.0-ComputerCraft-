@@ -1,0 +1,311 @@
+os.loadAPI("/doorOS/API/encrypt")
+os.loadAPI("/doorOS/API/sys")
+
+--Main OS 
+
+--Variablen
+_ver = 0.1
+_verstr = "0.1"
+key = ""
+tmpUsrNm = ""
+tmpPw = ""
+usrData = {
+	Username = "",
+	Password = "",
+	Language = "",
+}
+lang = {
+	
+}
+oldTerm = term.native()
+wallpaper = paintutils.loadImage("/doorOS/sys/wllppr")
+missing = 0
+left = 0
+maximum = 0
+search = ""
+progList = {}
+
+tasks = {}
+--Funktionen
+
+function drawLogin()
+	clear(colors.lightBlue, colors.white)
+	loginWindow = window.create(oldTerm, 15, 5, 20, 10)
+	term.redirect(loginWindow)
+	term.setBackgroundColor(colors.lightGray)
+	term.setTextColor(colors.white)
+	term.clear()
+	usrTxtBx = window.create(term.current(), 2, 2, 18, 1)
+	usrTxtBx.setBackgroundColor(colors.gray)
+	usrTxtBx.setTextColor(colors.lime)
+	usrTxtBx.clear()
+	usrTxtBx.write(usrData.Username)
+	pwTxtBx = window.create(term.current(), 2, 4, 18, 1)
+	pwTxtBx.setBackgroundColor(colors.gray)
+	pwTxtBx.setTextColor(colors.lime)
+	pwTxtBx.clear()
+	pwTxtBx.write(lang.Password)
+	term.setCursorPos(2,9)
+	term.setBackgroundColor(colors.lime)
+	term.setTextColor(colors.white)
+	term.write(" > ")
+	local login = true
+	while login do
+		local event, button, x, y = os.pullEvent("mouse_click")
+		if button == 1 and x >= 16 and x <= 33 and y == 8 then
+			term.redirect(pwTxtBx)
+			term.setCursorPos(1,1)
+			term.clear()
+			tmpPw = sys.limitRead(18, "*")
+			term.redirect(loginWindow)
+		elseif button == 1 and x >= 16 and x <= 18 and y == 13 then
+			if tmpPw == "" or tmpPw == nil then
+				pwTxtBx.setCursorPos(1,1)
+				pwTxtBx.clear()
+				pwTxtBx.setTextColor(colors.red)
+				pwTxtBx.write(lang.PlsFill)
+				pwTxtBx.setTextColor(colors.lime)
+			elseif tmpPw == usrData.Password then
+				login = false
+				term.redirect(oldTerm)
+				loginWindow.setVisible(false)
+				pwTxtBx.setVisible(false)
+				usrTxtBx.setVisible(false)
+				drawDesktop()
+			else
+				pwTxtBx.setCursorPos(1,1)
+				pwTxtBx.clear()
+				pwTxtBx.setTextColor(colors.red)
+				pwTxtBx.write(lang.WrongPW)
+				pwTxtBx.setTextColor(colors.lime)
+			end
+
+		end 
+	end
+end
+
+function drawRightWindow()
+
+end
+
+function drawDesktop()
+	clear(colors.black, colors.white)
+	paintutils.drawImage(wallpaper, 1, 1)
+	term.setCursorPos(1,1)
+	term.setBackgroundColor(colors.lightGray)
+	term.setTextColor(colors.white)
+	term.clearLine()
+	term.setBackgroundColor(colors.gray)
+	term.write(" @ ")
+	desktop = true
+	startmenu = false
+	while desktop do
+		local event, button, x, y = os.pullEventRaw()
+		if event == "mouse_click" and button == 1 and x >= 1 and x <= 3 and y == 1 then
+			if startmenu then
+				redrawDesktop()
+				startmenu = false
+				searchB = false
+			else
+				redrawStartup()
+				startmenu = true
+			end
+		elseif event == "mouse_click" and button == 1 and x >= 2 and x <= 14 and y == 3 and searchB then
+			term.redirect(searchBar)
+			term.setCursorPos(1,1)
+			term.clear()
+			searchBox.clear()
+			search = sys.limitRead(13)
+			reSearch(search)
+			term.redirect(oldTerm)
+
+		elseif event == "mouse_scroll" and button == 1 and x >= 2 and x <= 14 and y >= 5 and y <= 17 and searchB and left > 0 then
+			term.redirect(searchBox)
+			term.scroll(1)
+			term.setCursorPos(1,13)
+			term.write(progList[missing+13+1])
+			missing = missing+1
+			left = left-1
+			term.redirect(oldTerm)
+		elseif event == "mouse_scroll" and button == -1 and x >= 2 and x <= 14 and y >= 6 and y <= 18 and searchB and missing > 0 then
+			term.redirect(searchBox)
+			term.scroll(-1)
+			term.setCursorPos(1,1)
+			term.write(progList[missing])
+			missing = missing-1
+			left = left+1
+			term.redirect(oldTerm)
+
+		end
+	end
+end
+
+function reSearch(eingabe)
+	local last = term.current()
+	term.redirect(searchBox)
+	if eingabe == "" then eingabe = nil end
+	progListRaw = fs.list("/doorOS/apps/")
+	progList = {}
+	term.clear()
+	for _, folder in ipairs(progListRaw) do
+		local name, extension = string.match(folder, "(.*)%.(.*)")
+		if extension == "app" then
+			if name:match(eingabe) == eingabe then
+
+				table.insert(progList, name)
+			end
+		end
+	end
+	left = #progList-13
+	if left < 0 then left = 0 end
+	maximum = #progList
+	term.setCursorPos(1,1)
+	for _, file in ipairs(progList) do
+		if _ == 14 then
+			break
+		else
+			term.write(file)
+			local x, y = term.getCursorPos()
+			term.setCursorPos(1, y+1)
+
+		end
+	end
+	term.redirect(oldTerm)
+end
+
+function redrawStartup()
+	startmenu = window.create(oldTerm, 1, 2, 15, 18)
+	startmenu.setBackgroundColor(colors.cyan)
+	startmenu.setTextColor(colors.black)
+	startmenu.clear()
+	searchB = true
+	searchBar = window.create(startmenu, 2, 2, 13, 1)
+	searchBar.setBackgroundColor(colors.gray)
+	searchBar.setTextColor(colors.lime)
+	searchBar.clear()
+	searchBar.write(lang.SearchApp)
+	searchBox = window.create(startmenu, 2, 4, 13, 13)
+	searchBox.setBackgroundColor(colors.gray)
+	searchBox.setTextColor(colors.white)
+	searchBox.clear()
+	progListRaw = fs.list("/doorOS/apps/")
+	progList = {}
+	for _, folder in ipairs(progListRaw) do
+		local name, extension = string.match(folder, "(.*)%.(.*)")
+		if extension == "app" then
+			table.insert(progList, name)
+		end
+	end
+	left = #progList-13
+	if left < 0 then left = 0 end
+	maximum = #progList
+	term.redirect(searchBox)
+	term.setTextColor(colors.lime)
+	term.setBackgroundColor(colors.gray)
+	for _, file in ipairs(progList) do
+		if _ == 14 then
+			break
+		else
+			term.write(file)
+			local x, y = term.getCursorPos()
+			term.setCursorPos(1, y+1)
+		end
+	end
+	term.redirect(oldTerm)
+end
+
+function redrawDesktop()
+	clear(colors.black, colors.white)
+	paintutils.drawImage(wallpaper, 1, 1)
+	term.setCursorPos(1,1)
+	term.setBackgroundColor(colors.lightGray)
+	term.setTextColor(colors.white)
+	term.clearLine()
+	term.setBackgroundColor(colors.gray)
+	term.write(" @ ")
+	desktop = true
+end
+
+function readd(replaceChar)
+	term.setCursorBlink(true)
+	local cX, cY = term.getCursorPos()
+	local eingabe = ""
+
+	if replaceChar == "" then replaceChar = nil end
+	repeat
+		local event, key = os.pullEvent()
+		if event == "char" then
+			eingabe = eingabe..key
+			write(replaceChar or key)
+		elseif event == "key" and key == keys.backspace and #eingabe >= 1 then
+			--Lösche den letzten Buchstaben
+			eingabe = string.sub(eingabe, 1, #eingabe-1)	--eingabe ist eingabe vom 1. buchstaben vom alten eingabe bis zu einem buchstaben weniger
+			local xPos, yPos = term.getCursorPos()
+			term.setCursorPos(xPos-1, yPos)
+			write(" ")
+			term.setCursorPos(xPos-1, yPos)
+		end
+
+	until event == "key" and key == keys.enter
+	term.setCursorBlink(false)
+	return eingabe
+end
+
+function limitRead(nLimit, replaceChar)
+    term.setCursorBlink(true)
+    local cX, cY = term.getCursorPos()
+    local rString = ""
+    if replaceChar == "" then replaceChar = nil end
+    repeat
+        local event, p1 = os.pullEvent()
+        if event == "char" then
+            -- Character event
+            if #rString + 1 <= nLimit then
+                rString = rString .. p1
+                write(replaceChar or p1)
+            end
+        elseif event == "key" and p1 == keys.backspace and #rString >= 1 then
+            -- Backspace
+            rString = string.sub(rString, 1, #rString-1)
+            xPos, yPos = term.getCursorPos()
+            term.setCursorPos(xPos-1, yPos)
+            write(" ")
+            term.setCursorPos(xPos-1, yPos)
+        end
+    until event == "key" and p1 == keys.enter
+    term.setCursorBlink(false)
+    --print() -- Skip to the next line after clicking enter.
+    return rString
+end
+
+function clear(bg, fg)
+	term.setCursorPos(1,1)
+	term.setBackgroundColor(bg)
+	term.setTextColor(fg)
+	term.clear()
+end
+
+function loadKey()
+	shell.run("pastebin get sUzJjBgz /.tmp")
+	local file = fs.open("/.tmp","r")
+	key = file.readAll()
+	file.close()
+	fs.delete("/.tmp")
+end
+--Code
+clear(colors.black, colors.white)
+term.setCursorPos(1,1)
+print("OS Version: ".._verstr)
+sleep(2)
+clear(colors.black, colors.white)
+
+if fs.exists("/doorOS/sys/usrData") then
+	usrData = sys.readUsrData()
+	print(usrData.Language)
+	lang = sys.loadLanguage(usrData.Language)
+	loadKey()
+	usrData.Password = encrypt.decrypt(usrData.Password, key)
+	drawLogin()
+else
+	shell.run("/doorOS/API/sys firstrun")
+end
