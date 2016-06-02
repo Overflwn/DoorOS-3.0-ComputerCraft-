@@ -1,9 +1,5 @@
-<<<<<<< HEAD
-NONAME OS
-Third Version, this time without an external API again (like the first one)
-=======
+
 NONAME OS Third Version, this time without an external API again (like the first one)
->>>>>>> refs/remotes/origin/experimental
 
 Main Goals:
 - Multi-Language support
