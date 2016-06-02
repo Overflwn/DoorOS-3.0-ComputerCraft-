@@ -4,8 +4,8 @@ os.loadAPI("/doorOS/API/sys")
 --Main OS 
 
 --Variablen
-_ver = 0.1
-_verstr = "0.1"
+_ver = 1.6
+_verstr = "1.6"
 key = ""
 tmpUsrNm = ""
 tmpPw = ""
