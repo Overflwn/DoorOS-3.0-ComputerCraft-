@@ -4,5 +4,5 @@
 	PlsFill = "Bitte ausfuellen.",
 	WrongPW = "Falsches Passwort",
 	SearchApp = "Suche App...",
-	Run = "Start",
+	Run = "Start", --MAXIMUM 5 CHARACTER (glitches out of the button else, lol)
 }
