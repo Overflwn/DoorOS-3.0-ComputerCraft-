@@ -28,6 +28,10 @@ selectedProg = 0
 tasks = {}
 taskWindows = {}
 selectedTask = 0
+taskMissing = 0
+taskLeft = 0
+taskMaximum = 0
+
 --Funktionen
 
 function drawLogin()
@@ -102,7 +106,7 @@ function drawDesktop()
 	term.write(" @ ")
 	desktop = true
 	startmenu = false
-	taskmanager = false
+	taskmgr = false
 	while desktop do
 		local event, button, x, y = os.pullEventRaw()
 		if event == "mouse_click" and button == 1 and x >= 1 and x <= 3 and y == 1 then
