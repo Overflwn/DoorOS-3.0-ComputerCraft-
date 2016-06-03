@@ -280,4 +280,5 @@ local args = {...}
 if args[1] == "firstrun" then
 	getKey()
 	firstStart()
+	os.reboot()
 end
