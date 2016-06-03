@@ -1,0 +1,8 @@
+{
+	Username = "Username",
+	Password = "Password",
+	PlsFill = "Please fill.",
+	WrongPW = "Wrong Password",
+	SearchApp = "Search App...",
+	Run = "Run", --MAXIMUM 5 CHARACTER (glitches out of the button else, lol)
+}
