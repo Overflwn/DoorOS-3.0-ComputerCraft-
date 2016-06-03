@@ -270,7 +270,7 @@ function markLang(number)
 		term.setCursorPos(1, y+1)
 		term.setBackgroundColor(colors.gray)
 		counter = counter+1
-	until counter == 7
+	until counter == 7 or counter == maximum+1
 	term.redirect(grayWindow)
 end
 
