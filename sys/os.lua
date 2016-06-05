@@ -17,7 +17,7 @@ lang = {
 	
 }
 oldTerm = term.current()
-wallpaper = paintutils.loadImage("/doorOS/sys/wllppr")
+wallpaper = paintutils.loadImage("/doorOS/sys/wllppr.nfp")
 missing = 0
 left = 0
 maximum = 0
@@ -89,8 +89,40 @@ function drawLogin()
 	end
 end
 
-function drawRightWindow()
-
+function drawSettings()
+	set = true
+	settings = window.create(oldTerm, 16, 2, 36, 18)
+	settings.setBackgroundColor(colors.cyan)
+	settings.setTextColor(colors.white)
+	settings.setCursorPos(1,1)
+	settings.clear()
+	usrTxtBx = window.create(settings, 2, 2, 18, 1)
+	usrTxtBx.setBackgroundColor(colors.gray)
+	usrTxtBx.setTextColor(colors.lime)
+	usrTxtBx.clear()
+	usrTxtBx.setCursorPos(1,1)
+	usrTxtBx.write(usrData.Username)
+	setUsrname = window.create(settings, 20, 2, 16, 1)
+	setUsrname.setBackgroundColor(colors.cyan)
+	setUsrname.setTextColor(colors.white)
+	setUsrname.clear()
+	setUsrname.write(lang.Username)
+	pwTxtBx = window.create(settings, 2, 4, 18, 1)
+	pwTxtBx.setBackgroundColor(colors.gray)
+	pwTxtBx.setTextColor(colors.lime)
+	pwTxtBx.clear()
+	pwTxtBx.setCursorPos(1,1)
+	pwTxtBx.write("*****")
+	setPw = window.create(settings, 20, 4, 16, 1)
+	setPw.setBackgroundColor(colors.cyan)
+	setPw.setTextColor(colors.white)
+	setPw.clear()
+	setPw.write(lang.Password)
+	changeWallpaper = window.create(settings, 2, 6, 19, 1)
+	changeWallpaper.setBackgroundColor(colors.lime)
+	changeWallpaper.setTextColor(colors.white)
+	changeWallpaper.clear()
+	changeWallpaper.write(lang.changeWallpaper)
 end
 
 function drawDesktop()
@@ -121,6 +153,7 @@ function drawDesktop()
 				startmenu = false
 				searchB = false
 				taskmgr = false
+				set = false
 			else
 				redrawStartup()
 				startmenu = true
@@ -141,7 +174,34 @@ function drawDesktop()
 				redrawStartup()
 			end
 			term.redirect(desktopWindow)
-
+		elseif event == "mouse_click" and button == 1 and x == 12 and y == 19 and searchB then
+			drawSettings()
+		elseif event == "mouse_click" and button == 1 and x >= 16 and x <= 33 and y == 3 and set then
+			term.redirect(usrTxtBx)
+			term.setCursorPos(1,1)
+			term.clear()
+			tmpUsrNm = limitRead(18)
+			if tmpUsrNm == nil or tmpUsrNm == "" then
+				term.write(usrData.Username)
+				term.redirect(oldTerm)
+			else
+				usrData.Username = tmpUsrNm
+				sys.writeUsrData(usrData)
+				term.redirect(oldTerm)
+			end
+		elseif event == "mouse_click" and button == 1 and x >= 16 and x <= 33 and y == 5 and set then
+			term.redirect(pwTxtBx)
+			term.setCursorPos(1,1)
+			term.clear()
+			tmpPw = limitRead(18,"*")
+			if tmpPw == nil or tmpPw == "" then
+				term.write("*****")
+				term.redirect(oldTerm)
+			else
+				usrData.Password = sha.sha256(tmpPw)
+				sys.writeUsrData(usrData)
+				term.redirect(oldTerm)
+			end
 		elseif event == "mouse_scroll" and button == 1 and x >= 2 and x <= 14 and y >= 5 and y <= 17 and searchB and left > 0 then
 			term.redirect(searchBox)
 			term.scroll(1)
@@ -290,6 +350,7 @@ function drawDesktop()
 				end]]
 			end
 		elseif event == "mouse_click" and searchB and x == 10 and y == 19 and button == 1 then
+			set = false
 			drawTaskManager()
 			taskmgr = true
 		end
@@ -440,6 +501,10 @@ function redrawStartup()
 	startmenu.setBackgroundColor(colors.gray)
 	startmenu.setTextColor(colors.lime)
 	startmenu.write("T")
+	startmenu.setCursorPos(12, 18)
+	startmenu.setBackgroundColor(colors.gray)
+	startmenu.setTextColor(colors.lime)
+	startmenu.write("S")
 	if selectedProg > 0 then
 		startmenu.setCursorPos(2, 17)
 		startmenu.setBackgroundColor(colors.cyan)
@@ -482,13 +547,11 @@ function redrawStartup()
 		end
 	end
 	if selectedProg > 0 then
-		term.redirect(startmenu)
-		term.setCursorPos(2,18)
-		term.setBackgroundColor(colors.lime)
-		term.setTextColor(colors.white)
-		term.write("       ")
-		term.setCursorPos(3,18)
-		term.write(lang.Run) --Maximum 5 character
+		runButton = window.create(startmenu, 2, 18, 7, 1)
+		runButton.setBackgroundColor(colors.lime)
+		runButton.setTextColor(colors.white)
+		runButton.clear()
+		runButton.write(lang.Run)
 	end
 	term.redirect(oldTerm)
 end
