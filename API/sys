@@ -7,8 +7,8 @@ os.loadAPI("/doorOS/API/sha")
 --e.g. first start, loading and decrypting user stuff, etc.
 
 --Variablen
-_versys = 0.9
-_verstrsys = "0.9"
+_versys = 1.0
+_verstrsys = "1.0"
 usrData = {
 	Username = "",
 	Password = "",

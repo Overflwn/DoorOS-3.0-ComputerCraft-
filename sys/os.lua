@@ -4,8 +4,8 @@ os.loadAPI("/doorOS/API/sys")
 --Main OS 
 
 --Variablen
-_ver = 1.6
-_verstr = "1.6"
+_ver = 2.0
+_verstr = "2.0"
 tmpUsrNm = ""
 tmpPw = ""
 usrData = {
@@ -205,8 +205,10 @@ function drawDesktop()
 		elseif event == "mouse_click" and taskmgr and button == 1 and x == 50 and y >= 3 and y <= 18 then
 			local y = y-2
 			if taskMissing+y <= taskMaximum then
-				tasks[taskMissing+y] = nil
-				taskWindows[taskMissing+y] = nil
+				table.remove(tasks, taskMissing+y)
+				table.remove(taskWindows, taskMissing+y)
+				--tasks[taskMissing+y] = nil
+				--taskWindows[taskMissing+y] = nil
 				drawTaskManager()
 			end
 		elseif event == "mouse_click" and taskmgr and button == 1 and x == 49 and y >= 3 and y <= 18 then
