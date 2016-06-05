@@ -1,4 +1,4 @@
-os.loadAPI("/doorOS/API/encrypt")
+os.loadAPI("/doorOS/API/sha")
 os.loadAPI("/doorOS/API/sys")
 
 --Main OS 
@@ -6,7 +6,6 @@ os.loadAPI("/doorOS/API/sys")
 --Variablen
 _ver = 1.6
 _verstr = "1.6"
-key = ""
 tmpUsrNm = ""
 tmpPw = ""
 usrData = {
@@ -63,6 +62,7 @@ function drawLogin()
 			term.setCursorPos(1,1)
 			term.clear()
 			tmpPw = sys.limitRead(18, "*")
+			tmpPw = sha.sha256(tmpPw)
 			term.redirect(loginWindow)
 		elseif button == 1 and x >= 16 and x <= 18 and y == 13 then
 			if tmpPw == "" or tmpPw == nil then
@@ -104,6 +104,12 @@ function drawDesktop()
 	term.clearLine()
 	term.setBackgroundColor(colors.gray)
 	term.write(" @ ")
+	term.setCursorPos(51,1)
+	term.setBackgroundColor(colors.red)
+	term.write("S")
+	term.setCursorPos(50,1)
+	term.setBackgroundColor(colors.blue)
+	term.write("R")
 	desktop = true
 	startmenu = false
 	taskmgr = false
@@ -119,6 +125,10 @@ function drawDesktop()
 				redrawStartup()
 				startmenu = true
 			end
+		elseif event == "mouse_click" and button == 1 and x == 51 and y == 1 then
+			os.shutdown()
+		elseif event == "mouse_click" and button == 1 and x == 50 and y == 1 then
+			os.reboot()
 		elseif event == "mouse_click" and button == 1 and x >= 2 and x <= 14 and y == 3 and searchB then
 			term.redirect(searchBar)
 			term.setCursorPos(1,1)
@@ -378,6 +388,7 @@ function drawTaskManager()
 end
 
 function drawWindow(app, windownumber)
+	desktop = false
 	taskWindows[app].redraw()
 	term.redirect(taskWindows[app])
 	local progNumber = 0
@@ -544,13 +555,6 @@ function clear(bg, fg)
 	term.clear()
 end
 
-function loadKey()
-	shell.run("pastebin get sUzJjBgz /.tmp")
-	local file = fs.open("/.tmp","r")
-	key = file.readAll()
-	file.close()
-	fs.delete("/.tmp")
-end
 --Code
 clear(colors.black, colors.white)
 term.setCursorPos(1,1)
@@ -562,8 +566,6 @@ if fs.exists("/doorOS/sys/usrData") then
 	usrData = sys.readUsrData()
 	print(usrData.Language)
 	lang = sys.loadLanguage(usrData.Language)
-	loadKey()
-	usrData.Password = encrypt.decrypt(usrData.Password, key)
 	drawLogin()
 else
 	shell.run("/doorOS/API/sys firstrun")
