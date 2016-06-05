@@ -4,5 +4,6 @@
 	PlsFill = "Bitte ausfuellen.",
 	WrongPW = "Falsches Passwort",
 	SearchApp = "Suche App...",
-	Run = "Start", --MAXIMUM 5 CHARACTER (glitches out of the button else, lol)
+	Run = "Start",
+	changeWallpaper = "Desktopbild aendern"
 }
