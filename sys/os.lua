@@ -145,6 +145,8 @@ function drawDesktop()
 	desktop = true
 	startmenu = false
 	taskmgr = false
+	set = false
+	seachB = false
 	while desktop do
 		local event, button, x, y = os.pullEventRaw()
 		if event == "mouse_click" and button == 1 and x >= 1 and x <= 3 and y == 1 then
@@ -202,6 +204,10 @@ function drawDesktop()
 				sys.writeUsrData(usrData)
 				term.redirect(oldTerm)
 			end
+		elseif event == "mouse_click" and button == 1 and x >= 16 and x <= 34 and y == 7 and set then
+			shell.run("/doorOS/API/np","/doorOS/sys/wllppr.nfp")
+			wallpaper = paintutils.loadImage("/doorOS/sys/wllppr.nfp")
+			drawDesktop()
 		elseif event == "mouse_scroll" and button == 1 and x >= 2 and x <= 14 and y >= 5 and y <= 17 and searchB and left > 0 then
 			term.redirect(searchBox)
 			term.scroll(1)
@@ -559,6 +565,10 @@ end
 function redrawDesktop()
 	desktopWindow.redraw()
 	desktop = true
+	startmenu = false
+	taskmgr = false
+	set = false
+	seachB = false
 end
 
 function readd(replaceChar)
