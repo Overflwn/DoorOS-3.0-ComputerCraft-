@@ -4,5 +4,6 @@
 	PlsFill = "Please fill.",
 	WrongPW = "Wrong Password",
 	SearchApp = "Search App...",
-	Run = "Run", --MAXIMUM 5 CHARACTER (glitches out of the button else, lol)
+	Run = "Run",
+	changeWallpaper = "Change Wallpaper",
 }
