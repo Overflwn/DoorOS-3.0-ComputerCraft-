@@ -5,5 +5,13 @@
 	WrongPW = "Falsches Passwort",
 	SearchApp = "Suche App...",
 	Run = "Start",
-	changeWallpaper = "Desktopbild aendern"
+	changeWallpaper = "Desktopbild aendern",
+	softManager = "Software verwalten",
+	install = "Installieren",
+	enterInstallPath = "Pfad zur Installationsdatei..",
+	deleteSoftware = "Programme loeschen",
+	fileNotFound = "Datei nicht gefunden.",
+	alreadyExists = "Datei existiert.",
+	errorInstall = "Fehler im Installer.",
+	notAnInstaller = "Dies ist keine Installation"
 }

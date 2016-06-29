@@ -6,4 +6,12 @@
 	SearchApp = "Search App...",
 	Run = "Run",
 	changeWallpaper = "Change Wallpaper",
+	softManager = "Manage Software",
+	install = "Install",
+	enterInstallPath = "Enter installer path..",
+	deleteSoftware = "Delete software",
+	fileNotFound = "File not found.",
+	alreadyExists = "File already exists.",
+	errorInstall = "Error in the installer",
+	notAnInstaller = "This isn't an Installer"
 }

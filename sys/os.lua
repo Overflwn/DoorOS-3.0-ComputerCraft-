@@ -118,11 +118,16 @@ function drawSettings()
 	setPw.setTextColor(colors.white)
 	setPw.clear()
 	setPw.write(lang.Password)
-	changeWallpaper = window.create(settings, 2, 6, 19, 1)
+	changeWallpaper = window.create(settings, 2, 6, 18, 1)
 	changeWallpaper.setBackgroundColor(colors.lime)
 	changeWallpaper.setTextColor(colors.white)
 	changeWallpaper.clear()
 	changeWallpaper.write(lang.changeWallpaper)
+	manageSoftware = window.create(settings, 2, 8, 18, 1)
+	manageSoftware.setBackgroundColor(colors.lime)
+	manageSoftware.setTextColor(colors.white)
+	manageSoftware.clear()
+	manageSoftware.write(lang.softManager)
 end
 
 function drawDesktop()
@@ -143,22 +148,24 @@ function drawDesktop()
 	term.setBackgroundColor(colors.blue)
 	term.write("R")
 	desktop = true
-	startmenu = false
+	_startmen = false
 	taskmgr = false
 	set = false
 	seachB = false
+	_sftmngr = false
 	while desktop do
 		local event, button, x, y = os.pullEventRaw()
 		if event == "mouse_click" and button == 1 and x >= 1 and x <= 3 and y == 1 then
-			if startmenu then
+			if _startmen then
 				redrawDesktop()
-				startmenu = false
+				_startmen = false
 				searchB = false
 				taskmgr = false
 				set = false
+				_sftmngr = false
 			else
 				redrawStartup()
-				startmenu = true
+				_startmen = true
 			end
 		elseif event == "mouse_click" and button == 1 and x == 51 and y == 1 then
 			os.shutdown()
@@ -204,10 +211,14 @@ function drawDesktop()
 				sys.writeUsrData(usrData)
 				term.redirect(oldTerm)
 			end
-		elseif event == "mouse_click" and button == 1 and x >= 16 and x <= 34 and y == 7 and set then
+		elseif event == "mouse_click" and button == 1 and x >= 16 and x <= 33 and y == 7 and set then
 			shell.run("/doorOS/API/np","/doorOS/sys/wllppr.nfp")
 			wallpaper = paintutils.loadImage("/doorOS/sys/wllppr.nfp")
 			drawDesktop()
+		elseif event == "mouse_click" and button == 1 and x >= 16 and x <= 33 and y == 9 and set then
+			set = false
+			_sftmngr = true
+			drawSoftwareManager()
 		elseif event == "mouse_scroll" and button == 1 and x >= 2 and x <= 14 and y >= 5 and y <= 17 and searchB and left > 0 then
 			term.redirect(searchBox)
 			term.scroll(1)
@@ -251,7 +262,7 @@ function drawDesktop()
 			taskMissing = taskMissing+1
 			taskLeft = taskLeft-1
 			term.redirect(oldTerm)
-		elseif event == "mouse_scroll" and button == 1 and taskMissing > 0 and x >= 17 and x <= 50 and y >= 3 and y <= 18 and taskmgr then
+		elseif event == "mouse_scroll" and button == -1 and taskMissing > 0 and x >= 17 and x <= 50 and y >= 3 and y <= 18 and taskmgr then
 			term.redirect(tasklist)
 			term.setBackgroundColor(colors.gray)
 			term.setTextColor(colors.lime)
@@ -300,7 +311,7 @@ function drawDesktop()
 			end
 		elseif event == "mouse_click" and searchB and selectedProg > 0 and button == 1 and x >= 2 and x <= 8 and y == 19 then
 			searchB = false
-			startmenu = false
+			_startmen = false
 			desktop = false
 			term.redirect(oldTerm)
 			local progNumber = "Fill"
@@ -357,8 +368,148 @@ function drawDesktop()
 			end
 		elseif event == "mouse_click" and searchB and x == 10 and y == 19 and button == 1 then
 			set = false
+			_sftmngr = false
 			drawTaskManager()
 			taskmgr = true
+		elseif event == "mouse_click" and button == 1 and _sftmngr and x == 50 and y >= 9 and y <= 18 then
+			local y = y-8
+			if y <= progMaximum then
+				local selectedProg = progList[y]
+				--if taskMissing+y <= taskMaximum then
+				for _, prog in ipairs(tasks) do
+					if selectedProg == prog then
+						table.remove(tasks, _)
+						table.remove(taskWindows, _)
+						--tasks[taskMissing+y] = nil
+						--taskWindows[taskMissing+y] = nil
+					end
+				end
+				fs.delete("/doorOS/apps/"..selectedProg..".app")
+				redrawStartup()
+				drawSoftwareManager()
+			end
+		elseif event == "mouse_scroll" and button == 1 and _sftmngr and progLeft > 0 and x >= 17 and x <= 50 and y >= 9 and y <= 18 then
+			term.redirect(softList)
+			term.scroll(1)
+			progMissing = progMissing+1
+			progLeft = progLeft-1
+			term.setBackgroundColor(colors.gray)
+			term.setTextColor(colors.lime)
+			term.setCursorPos(1, 10)
+			term.write(progList[progLeft+10+1])
+			term.setCursorPos(34, 10)
+			term.setBackgroundColor(colors.red)
+			term.setTextColor(colors.white)
+			term.write("X")
+			term.setBackgroundColor(colors.gray)
+			term.setTextColor(colors.lime)
+			term.redirect(oldTerm)
+		elseif event == "mouse_scroll" and button == -1 and _sftmngr and progMissing > 0 and x >= 17 and x <= 50 and y >= 9 and y <= 18 then
+			term.redirect(softList)
+			term.scroll(-1)
+			progMissing = progMissing-1
+			progLeft = progLeft+1
+			term.setBackgroundColor(colors.gray)
+			term.setTextColor(colors.lime)
+			term.setCursorPos(1,1)
+			term.write(progList[progMissing])
+			term.setCursorPos(34,1)
+			term.setBackgroundColor(colors.red)
+			term.setTextColor(colors.white)
+			term.write("X")
+			term.setBackgroundColor(colors.gray)
+			term.setTextColor(colors.lime)
+			term.redirect(oldTerm)
+		elseif event == "mouse_click" and button == 1 and _sftmngr and x >= 17 and x <= 50 and y == 5 then
+			term.redirect(installTxtBx)
+			term.setBackgroundColor(colors.gray)
+			term.setTextColor(colors.lime)
+			term.clear()
+			term.setCursorPos(1,1)
+			local eingabe = read()
+			if #eingabe < 1 then
+				term.redirect(oldTerm)
+				installTxtBx.write(lang.enterInstallPath)
+			else
+				if fs.exists(eingabe) then
+					a = eingabe
+					term.setCursorPos(1,1)
+					term.clear()
+					term.write("Enter name..")
+					sleep(2)
+					term.setCursorPos(1,1)
+					term.clear()
+					local eingabe = read()
+					if #eingabe < 1 then
+						term.redirect(oldTerm)
+						installTxtBx.setCursorPos(1,1)
+						installTxtBx.clear()
+						installTxtBx.write(lang.enterInstallPath)
+					else
+						if fs.exists("/doorOS/apps/"..eingabe..".app") then
+							term.setCursorPos(1,1)
+							term.setTextColor(colors.red)
+							term.clear()
+							term.write(lang.alreadyExists)
+							sleep(2)
+							term.setCursorPos(1,1)
+							term.clear()
+							term.setTextColor(colors.lime)
+							term.write(lang.enterInstallPath)
+							term.redirect(oldTerm)
+						else
+							b = eingabe
+							fs.makeDir("/doorOS/apps/"..b..".app")
+							local file = fs.open(a, "r")
+							local installer = file.readLine()
+							--installer = textutils.unserialize(installer)
+							file.close()
+
+							--if type(installer) == "table" and installer.installable then
+							if installer == "--installable" then
+								local ok, err = shell.run(a, "/doorOS/apps/"..b..".app/")
+								if ok then
+									term.redirect(oldTerm)
+									
+									redrawStartup()
+									drawSoftwareManager()
+								else
+									fs.delete("/doorOS/apps/"..b..".app")
+									term.setTextColor(colors.red)
+									term.setCursorPos(1,1)
+									term.clear()
+									term.write(lang.errorInstaller)
+									term.setTextColor(colors.lime)
+									sleep(2)
+									term.setCursorPos(1,1)
+									term.clear()
+									term.write(lang.enterInstallPath)
+									term.redirect(oldTerm)
+								end
+							else
+								fs.delete("/doorOS/apps/"..b..".app")
+								term.setCursorPos(1,1)
+								term.setTextColor(colors.red)
+								term.clear()
+								term.write(lang.notAnInstaller)
+								term.setTextColor(colors.lime)
+								term.setCursorPos(1,1)
+								sleep(2)
+								term.clear()
+								term.write(lang.enterInstallPath)
+								term.redirect(oldTerm)
+							end
+						end
+					end
+				else
+					term.clear()
+					term.setCursorPos(1,1)
+					term.setTextColor(colors.red)
+					term.write(lang.fileNotFound)
+					term.setTextColor(colors.lime)
+					term.redirect(oldTerm)
+				end
+			end	
 		end
 	end
 end
@@ -419,6 +570,7 @@ function reSearch(eingabe)
 	end
 	term.redirect(oldTerm)
 end
+
 
 function drawTaskManager()
 	taskmanager = window.create(oldTerm, 16, 2, 36, 18)
@@ -484,6 +636,57 @@ function drawWindow(app, windownumber)
 			redrawDesktop()
 			running = false
 			break
+		end
+	end
+end
+
+function drawSoftwareManager()
+	softMngr = window.create(oldTerm, 16, 2, 36, 18)
+	softMngr.setBackgroundColor(colors.lightGray)
+	softMngr.setTextColor(colors.white)
+	softMngr.clear()
+	term.redirect(softMngr)
+	term.setCursorPos(2, 2)
+	term.write(lang.install)
+	installTxtBx = window.create(softMngr, 2, 4, 34, 1)
+	installTxtBx.setBackgroundColor(colors.gray)
+	installTxtBx.setTextColor(colors.lime)
+	installTxtBx.clear()
+	installTxtBx.write(lang.enterInstallPath)
+	term.setCursorPos(2, 6)
+	term.setTextColor(colors.white)
+	term.write(lang.deleteSoftware)
+	softList = window.create(softMngr, 2, 8, 34, 10)
+	softList.setBackgroundColor(colors.gray)
+	softList.setTextColor(colors.lime)
+	softList.clear()
+	progListRaw = fs.list("/doorOS/apps/")
+	progList = {}
+	for _, folder in ipairs(progListRaw) do
+		local name, extension = string.match(folder, "(.*)%.(.*)")
+		if extension == "app" then
+			table.insert(progList, name)
+		end
+	end
+	progMissing = 0
+	progLeft = #progList-10
+	progMaximum = #progList
+	term.redirect(softList)
+	term.setBackgroundColor(colors.gray)
+	term.setTextColor(colors.lime)
+	for _, file in ipairs(progList) do
+		if _ == 11 then
+			break
+		else
+			term.write(file)
+			local x, y = term.getCursorPos()
+			term.setCursorPos(34, y)
+			term.setBackgroundColor(colors.red)
+			term.setTextColor(colors.white)
+			term.write("X")
+			term.setBackgroundColor(colors.gray)
+			term.setTextColor(colors.lime)
+			term.setCursorPos(1, y+1)
 		end
 	end
 end
@@ -565,10 +768,11 @@ end
 function redrawDesktop()
 	desktopWindow.redraw()
 	desktop = true
-	startmenu = false
+	_startmen = false
 	taskmgr = false
 	set = false
 	seachB = false
+	_sftmngr = false
 end
 
 function readd(replaceChar)

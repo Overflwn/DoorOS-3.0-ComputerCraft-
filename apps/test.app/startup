@@ -1,4 +1,3 @@
-print("Hello")
 while true do
-	read()
+  read()
 end
