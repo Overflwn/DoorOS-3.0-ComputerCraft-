@@ -31,6 +31,22 @@ taskMissing = 0
 taskLeft = 0
 taskMaximum = 0
 
+minimized = {
+	
+}
+
+t = {
+	w = {},
+	uw = {},
+	c = {},
+	tb = {},
+	xA = {},
+	yA = {},
+	xO = {},
+	yO = {},
+
+}
+
 --Funktionen
 
 function drawLogin()
@@ -130,6 +146,23 @@ function drawSettings()
 	manageSoftware.write(lang.softManager)
 end
 
+local function isminimized(prog)
+	local exists = false
+	for _, program in ipairs(minimized) do
+		if prog == program then
+			exists = true
+			break
+		else
+			exists = false
+		end
+	end
+	if exists == true then
+		return true
+	else
+		return false
+	end
+end
+
 function drawDesktop()
 	desktopWindow = window.create(oldTerm, 1, 1, 51, 19)
 	term.redirect(desktopWindow)
@@ -148,13 +181,44 @@ function drawDesktop()
 	term.setBackgroundColor(colors.blue)
 	term.write("R")
 	desktop = true
+	onDesktop = true
 	_startmen = false
 	taskmgr = false
 	set = false
 	seachB = false
 	_sftmngr = false
 	while desktop do
-		local event, button, x, y = os.pullEventRaw()
+		evt = {os.pullEventRaw()}
+
+		if onDesktop then
+			for _, a in pairs(t.c) do
+				local stat = coroutine.status(t.c[_])
+				if evt[1] == "mouse_click" or evt[1] == "mouse_drag" or evt[1] == "mouse_up" or evt[1] == "mouse_down" or evt[1] == "key" or evt[1] == "char" then
+					if _ == progList[selectedProg] and stat == "suspended" and isminimized(_) == false then
+						term.redirect(t.w[_])
+						coroutine.resume(t.c[_], unpack(evt))
+					end
+				elseif stat == "suspended" then
+					term.redirect(t.w[_])
+					coroutine.resume(t.c[_], unpack(evt))
+				elseif stat == "dead" then
+					t.c[_] = nil
+					t.w[_] = nil
+					t.uw[_] = nil
+					t.xA[_] = nil
+					t.yA[_] = nil
+					t.xO[_] = nil
+					t.yO[_] = nil
+					redrawDesktop()
+					drawWindows()
+				end
+			end
+		end
+		local event = evt[1]
+		local button = evt[2]
+		local x = evt[3]
+		local y = evt[4]
+		term.redirect(oldTerm)
 		if event == "mouse_click" and button == 1 and x >= 1 and x <= 3 and y == 1 then
 			if _startmen then
 				redrawDesktop()
@@ -163,6 +227,20 @@ function drawDesktop()
 				taskmgr = false
 				set = false
 				_sftmngr = false
+				local exists = false
+				for _, a in ipairs(minimized) do
+					if a == progList[selectedProg] then
+						exists = true
+						break
+					else
+						exists = false
+					end
+				end
+				if exists == false then
+					drawWindows(progList[selectedProg])
+				else
+					drawWindows()
+				end
 			else
 				redrawStartup()
 				_startmen = true
@@ -184,6 +262,7 @@ function drawDesktop()
 			end
 			term.redirect(desktopWindow)
 		elseif event == "mouse_click" and button == 1 and x == 12 and y == 19 and searchB then
+			onDesktop = false
 			drawSettings()
 		elseif event == "mouse_click" and button == 1 and x >= 16 and x <= 33 and y == 3 and set then
 			term.redirect(usrTxtBx)
@@ -218,6 +297,7 @@ function drawDesktop()
 		elseif event == "mouse_click" and button == 1 and x >= 16 and x <= 33 and y == 9 and set then
 			set = false
 			_sftmngr = true
+			onDesktop = false
 			drawSoftwareManager()
 		elseif event == "mouse_scroll" and button == 1 and x >= 2 and x <= 14 and y >= 5 and y <= 17 and searchB and left > 0 then
 			term.redirect(searchBox)
@@ -251,7 +331,13 @@ function drawDesktop()
 			term.setBackgroundColor(colors.gray)
 			term.scroll(1)
 			term.setCursorPos(1, 16)
-			term.write(tasks[taskMissing+16+1])
+			local a = progList[taskMissing+16+1]
+			for _, b in pairs(t.c) do
+				if _ == a then
+					term.write(_)
+				end
+			end
+			--term.write(tasks[taskMissing+16+1])
 			term.setCursorPos(34, 16)
 			term.setBackgroundColor(colors.red)
 			term.setTextColor(colors.white)
@@ -268,7 +354,13 @@ function drawDesktop()
 			term.setTextColor(colors.lime)
 			term.scroll(-1)
 			term.setCursorPos(1, 1)
-			term.write(tasks[taskMissing])
+			local a = progList[taskMissing]
+			for _, b in pairs(t.c) do
+				if _ == a then
+					term.write(_)
+				end
+			end
+			--term.write(tasks[taskMissing])
 			term.setCursorPos(34, 16)
 			term.setBackgroundColor(colors.red)
 			term.setTextColor(colors.white)
@@ -280,10 +372,31 @@ function drawDesktop()
 			taskLeft = taskLeft+1
 			term.redirect(oldTerm)
 		elseif event == "mouse_click" and taskmgr and button == 1 and x == 50 and y >= 3 and y <= 18 then
+			term.setCursorPos(2,2)
+			term.setBackgroundColor(colors.green)
+			term.write("TRUE")
 			local y = y-2
 			if taskMissing+y <= taskMaximum then
-				table.remove(tasks, taskMissing+y)
-				table.remove(taskWindows, taskMissing+y)
+				local a = ts[taskMissing+y]
+				--table.remove(t.c, a)
+				term.setCursorPos(2,2)
+				term.setBackgroundColor(colors.green)
+				term.write(a)
+				t.c[a] = nil
+				t.w[a] = nil
+				t.uw[a] = nil
+				t.xA[a] = nil
+				t.yA[a] = nil
+				t.xO[a] = nil
+				t.yO[a] = nil
+				--table.remove(tasks, taskMissing+y)
+				--[[table.remove(t.w, a)
+				table.remove(t.uw, a)
+				table.remove(t.xA, a)
+				table.remove(t.yA, a)
+				table.remove(t.xO, a)
+				table.remove(t.yO, a)]]
+				--table.remove(taskWindows, taskMissing+y)
 				--tasks[taskMissing+y] = nil
 				--taskWindows[taskMissing+y] = nil
 				drawTaskManager()
@@ -291,8 +404,9 @@ function drawDesktop()
 		elseif event == "mouse_click" and taskmgr and button == 1 and x == 49 and y >= 3 and y <= 18 then
 			local y = y-2
 			if taskMissing+y <= taskMaximum then
-				local program = tasks[taskMissing+y]
-				drawWindow(program, program)
+				local program = ts[taskMissing+y]
+				redrawDesktop()
+				drawWindows(program)
 			end
 		elseif event == "mouse_click" and button == 1 and x >= 2 and x <= 14 and y >= 5 and y <= 17 and searchB and maximum > 0 then
 			local y = y-4
@@ -312,36 +426,71 @@ function drawDesktop()
 		elseif event == "mouse_click" and searchB and selectedProg > 0 and button == 1 and x >= 2 and x <= 8 and y == 19 then
 			searchB = false
 			_startmen = false
-			desktop = false
+			desktop = true
+			onDesktop = true
 			term.redirect(oldTerm)
 			local progNumber = "Fill"
-			if #tasks == 0 then tasks[1] = "Fill" end
-			for _, program in ipairs(tasks) do
-				if program == progList[selectedProg] then
+			--if #tasks == 0 then tasks[1] = "Fill" end
+			--for _, program in ipairs(tasks) do
+			for _, program in pairs(t.c) do
+				if _ == progList[selectedProg] then
 					progNumber = progList[selectedProg]
 					new = false
 					break
-				elseif program == "Fill" then
-					progNumber = progList[selectedProg]
-					new = true
-					tasks[1] = nil
 				end
-				progNumber = progList[selectedProg]
-				new = true
 			end
 			if new == false then
-				for _, program in ipairs(tasks) do
-					if program == progList[selectedProg] then
-						drawWindow(program, program)
+				redrawDesktop()
+				onDesktop = true
+				for _, program in pairs(t.c) do
+				--for _, program in ipairs(tasks) do
+					if _ == progList[selectedProg] then
+						drawWindows(_)
 					end
 				end
 
 			else
+
+				redrawDesktop()
+				onDesktop = true
 				local program = progList[selectedProg]
-				table.insert(taskWindows, progList[selectedProg])
-				taskWindows[program] = window.create(oldTerm, 1, 1, 51, 19)
-				table.insert(tasks, progList[selectedProg])
-				for _, program in ipairs(tasks) do
+				--table.insert(taskWindows, progList[selectedProg])
+				t.uw[program] = window.create(oldTerm, 1, 2, 51, 18)
+				t.uw[program].setBackgroundColor(colors.lightGray)
+				t.uw[program].setTextColor(colors.white)
+				t.uw[program].clear()
+				t.tb[program] = window.create(t.uw[program], 1, 1, 51, 1)
+				t.tb[program].setBackgroundColor(colors.cyan)
+				t.tb[program].clear()
+
+				t.tb[program].setCursorPos(1,1)
+				t.tb[program].setBackgroundColor(colors.gray)
+				t.tb[program].write("M")
+				t.tb[program].setBackgroundColor(colors.cyan)
+				t.tb[program].write(" "..program)
+				t.tb[program].setCursorPos(51,1)
+				t.tb[program].setBackgroundColor(colors.red)
+				t.tb[program].write("X")
+				t.tb[program].setBackgroundColor(colors.green)
+				t.tb[program].setCursorPos(50,1)
+				t.tb[program].write("^")
+				t.tb[program].setBackgroundColor(colors.orange)
+				t.tb[program].setCursorPos(49,1)
+				t.tb[program].write("_")
+				t.w[program] = window.create(t.uw[program], 2, 2, 49, 16)
+				--taskWindows[program] = window.create(oldTerm, 1, 1, 51, 19)
+				t.c[program] = coroutine.create(runProg)
+				t.w[program].setBackgroundColor(colors.black)
+				t.w[program].setTextColor(colors.white)
+				t.w[program].setCursorPos(1,1)
+				t.w[program].clear()
+				t.xA[program] = 1
+				t.yA[program] = 2
+				t.xO[program] = 51
+				t.yO[program] = 19
+				drawWindows(program)
+				--table.insert(tasks, progList[selectedProg])
+				--[[for _, program in ipairs(tasks) do
 					if program == progList[selectedProg] then
 						tasks[program] = coroutine.create(runProg)
 						taskWindows[program].setBackgroundColor(colors.black)
@@ -350,7 +499,7 @@ function drawDesktop()
 						taskWindows[program].clear()
 						drawWindow(program, program)
 					end
-				end
+				end]]
 				--[[table.insert(taskWindows, "test")
 				taskWindows["test"] = window.create(oldTerm, 1, 1, 51, 19)
 				table.insert(tasks, "test")
@@ -369,6 +518,7 @@ function drawDesktop()
 		elseif event == "mouse_click" and searchB and x == 10 and y == 19 and button == 1 then
 			set = false
 			_sftmngr = false
+			onDesktop = false
 			drawTaskManager()
 			taskmgr = true
 		elseif event == "mouse_click" and button == 1 and _sftmngr and x == 50 and y >= 9 and y <= 18 then
@@ -376,10 +526,18 @@ function drawDesktop()
 			if y <= progMaximum then
 				local selectedProg = progList[y]
 				--if taskMissing+y <= taskMaximum then
-				for _, prog in ipairs(tasks) do
-					if selectedProg == prog then
-						table.remove(tasks, _)
-						table.remove(taskWindows, _)
+				for _, prog in pairs(t.c) do
+					if selectedProg == _ then
+						--table.remove(tasks, _)
+						
+						--table.remove(taskWindows, _)
+						t.c[_] = nil
+						t.w[_] = nil
+						t.uw[_] = nil
+						t.xA[_] = nil
+						t.yA[_] = nil
+						t.xO[_] = nil
+						t.yO[_] = nil
 						--tasks[taskMissing+y] = nil
 						--taskWindows[taskMissing+y] = nil
 					end
@@ -510,12 +668,194 @@ function drawDesktop()
 					term.redirect(oldTerm)
 				end
 			end	
+		elseif event == "mouse_click" and onDesktop then
+			local sel = nil
+			
+			for _, a in pairs(t.xA) do
+				local _bx = t.xA[_]
+				local _by = t.yA[_]
+				local _ox = t.xO[_]
+				local _oy = t.yO[_]
+				if x > a and x < _ox-2 and y >= _by and y <= _oy and isminimized(_) == false and _ == progList[selectedProg] then
+					for m, a in ipairs(progList) do
+						if a == _ then
+							selectedProg = nil
+							selectedProg = m
+							sel = a
+						end
+					end
+					drawWindows(_)
+				elseif x > a and x < _ox-2 and y >= _by and y <= _oy and isminimized(_) == false and _ ~= progList[selectedProg] then
+					local z = progList[selectedProg]
+					if t.xA[z] ~= nil and x >= t.xA[z] and x <= t.xO[z] and y >= t.yA[z] and y <= t.yO[z] then
+
+					else
+						for m, a in ipairs(progList) do
+							if a == _ then
+								selectedProg = nil
+								selectedProg = m
+								sel = a
+							end
+						end
+						drawWindows(_)
+					end
+				end
+				sel = progList[selectedProg]
+			end
+			local bx = t.xA[progList[selectedProg]]
+			local by = t.yA[progList[selectedProg]]
+			local ox = t.xO[progList[selectedProg]]
+			local oy = t.yO[progList[selectedProg]]
+			if bx ~= nil then
+				if x == ox-2 and y == by and sel == progList[selectedProg] then
+					table.insert(minimized, sel)
+					t.uw[sel].setVisible(false)
+					redrawDesktop()
+					drawWindows()
+				elseif x == ox and y == by then
+					t.c[sel] = nil
+					t.w[sel] = nil
+					t.uw[sel] = nil
+					t.xA[sel] = nil
+					t.yA[sel] = nil
+					t.xO[sel] = nil
+					t.yO[sel] = nil
+					for n, a in ipairs(minimized) do
+						if a == sel then
+							table.remove(minimized, n)
+						end
+					end
+					redrawDesktop()
+					drawWindows()
+				elseif x == ox-1 and y == by and sel == progList[selectedProg] then
+					t.xA[sel] = 1
+					t.yA[sel] = 2
+					t.xO[sel] = 51
+					t.yO[sel] = 19
+					t.uw[sel].reposition(1,2,51,18)
+					t.tb[sel].reposition(1,1,51,1)
+					t.w[sel].reposition(2,2,49,16)
+					t.tb[sel].setBackgroundColor(colors.cyan)
+					t.tb[sel].clear()
+					t.tb[sel].setCursorPos(1,1)
+					t.tb[sel].setBackgroundColor(colors.gray)
+					t.tb[sel].write("M")
+					t.tb[sel].setBackgroundColor(colors.cyan)
+					t.tb[sel].write(" "..sel)
+					t.tb[sel].setBackgroundColor(colors.red)
+					local x, y = t.tb[sel].getSize()
+					t.tb[sel].setCursorPos(x, 1)
+					t.tb[sel].write("X")
+					t.tb[sel].setBackgroundColor(colors.green)
+					t.tb[sel].setCursorPos(x-1, 1)
+					t.tb[sel].write("^")
+					t.tb[sel].setBackgroundColor(colors.orange)
+					t.tb[sel].setCursorPos(x-2, y)
+					t.tb[sel].write("_")
+					redrawDesktop()
+					drawWindows(sel)
+					local x, y = t.uw[sel].getSize()
+
+					local counter = 2
+					repeat
+						t.uw[sel].setBackgroundColor(colors.lightGray)
+						t.uw[sel].setCursorPos(x, counter)
+						t.uw[sel].write(" ")
+						counter = counter+1
+					until counter == y+1
+					bx = t.xA[sel]
+					by = t.yA[sel]
+					ox = t.xO[sel]
+					oy = t.yO[sel]
+				elseif x == bx and y == by and sel == progList[selectedProg] then
+					repeat
+						local m, b, nx, ny = os.pullEvent()
+						if m == "mouse_drag" and ny > 1 then
+							local w = t.xO[sel]-t.xA[sel]+1
+							local h = t.yO[sel]-t.yA[sel]+1
+							t.xA[sel] = nx
+							t.yA[sel] = ny
+							
+							t.xO[sel] = nx+w-1
+							t.yO[sel] = ny+h-1
+							t.uw[sel].reposition(nx, ny)
+							redrawDesktop()
+							drawWindows(sel)
+
+						end
+					until m == "mouse_up"
+					bx = t.xA[sel]
+					by = t.yA[sel]
+					ox = t.xO[sel]
+					oy = t.yO[sel]
+				elseif x == ox and y == oy and sel == progList[selectedProg] then
+					repeat
+						local m, b, nx, ny = os.pullEvent()
+						if m == "mouse_drag" then
+							local oldWidth = t.xO[sel]-t.xA[sel]+1
+							local oldHeight = t.yO[sel]-t.yA[sel]+1
+							local newWidth = nx-t.xA[sel]+1
+							local newHeight = ny-t.yA[sel]+1
+							t.xO[sel] = nx
+							t.yO[sel] = ny
+								
+							t.uw[sel].reposition(t.xA[sel], t.yA[sel], newWidth, newHeight)
+							t.uw[sel].clear()
+							t.w[sel].reposition(2, 2, newWidth-2, newHeight-2)
+							t.w[sel].redraw()
+							t.tb[sel].reposition(1,1, newWidth, 1)
+							t.tb[sel].setBackgroundColor(colors.cyan)
+							t.tb[sel].clear()
+							t.tb[sel].setCursorPos(1,1)
+							t.tb[sel].setBackgroundColor(colors.gray)
+							t.tb[sel].write("M")
+							t.tb[sel].setBackgroundColor(colors.cyan)
+							t.tb[sel].write(" "..sel)
+							t.tb[sel].setBackgroundColor(colors.red)
+							local x, y = t.tb[sel].getSize()
+							t.tb[sel].setCursorPos(x, 1)
+							t.tb[sel].write("X")
+							t.tb[sel].setBackgroundColor(colors.green)
+							t.tb[sel].setCursorPos(x-1, 1)
+							t.tb[sel].write("^")
+							t.tb[sel].setBackgroundColor(colors.orange)
+							t.tb[sel].setCursorPos(x-2, y)
+							t.tb[sel].write("_")
+
+							redrawDesktop()
+							drawWindows(sel)
+							local x, y = t.uw[sel].getSize()
+
+							local counter = 2
+							repeat
+								t.uw[sel].setBackgroundColor(colors.lightGray)
+								t.uw[sel].setCursorPos(x, counter)
+								t.uw[sel].write(" ")
+								counter = counter+1
+							until counter == y+1
+						end
+					until m == "mouse_up"
+					local x, y = t.uw[sel].getSize()
+
+					local counter = 2
+					repeat
+						t.uw[sel].setBackgroundColor(colors.lightGray)
+						t.uw[sel].setCursorPos(x, counter)
+						t.uw[sel].write(" ")
+						counter = counter+1
+					until counter == y+1
+					bx = t.xA[sel]
+					by = t.yA[sel]
+					ox = t.xO[sel]
+					oy = t.yO[sel]
+				end
+			end
 		end
 	end
 end
 
 
-function runProg(prog)
+function runProg()
 	shell.run("/doorOS/apps/"..progList[selectedProg]..".app/startup")
 end
 
@@ -571,6 +911,11 @@ function reSearch(eingabe)
 	term.redirect(oldTerm)
 end
 
+local function getTableLength(table)
+	local count = 0
+	for _ in pairs(table) do count = count + 1 end
+	return count
+end
 
 function drawTaskManager()
 	taskmanager = window.create(oldTerm, 16, 2, 36, 18)
@@ -585,11 +930,17 @@ function drawTaskManager()
 	term.redirect(tasklist)
 	term.setCursorPos(1,1)
 	taskMissing = 0
-	taskLeft = #tasks-16
-	taskMaximum = #tasks
+	taskMaximum = getTableLength(t.c)
+	taskLeft = taskMaximum-16
+	ts = {}
+	for _ in pairs(t.c) do
+		table.insert(ts, _)
+	end
 	taskmgr = true
-	for _, program in ipairs(tasks) do
-		if _ == 17 then
+	if taskLeft < 0 then taskLeft = 0 end
+	local counter = 1
+	for _, program in ipairs(ts) do
+		if counter == 17 then
 			break
 		else
 			term.write(program)
@@ -602,7 +953,7 @@ function drawTaskManager()
 			term.write(">")
 			term.setBackgroundColor(colors.gray)
 			term.setCursorPos(1, y+1)
-			
+			counter = counter+1
 		end
 	end
 
@@ -610,20 +961,25 @@ end
 
 function drawWindow(app, windownumber)
 	desktop = false
-	taskWindows[app].redraw()
-	term.redirect(taskWindows[app])
+	--taskWindows[app].redraw()
+	t.w[app].redraw()
+	--term.redirect(taskWindows[app])
+	term.redirect(t.w[app])
 	local progNumber = 0
 	local running = false
-	for _, program in ipairs(tasks) do
-		if program == app then
+	for _, program in pairs(t.c) do
+	--for _, program in ipairs(tasks) do
+		if _ == app then
 			running = true
-			progNumber = program
+			progNumber = _
+			--progNumber = program
 		end
 	end
 	local evt = {}
 	while running do
 		
-		coroutine.resume(tasks[progNumber], unpack(evt))
+		coroutine.resume(t.c[progNumber], unpack(evt))
+		--coroutine.resume(tasks[progNumber], unpack(evt))
 		evt = {os.pullEvent()}
 
 		if evt[1] == "key" and evt[2] == 211 then
@@ -638,6 +994,32 @@ function drawWindow(app, windownumber)
 			break
 		end
 	end
+end
+
+function drawWindows(app)
+  for _, a in pairs(t.uw) do
+  	local b = isminimized(_)
+  		if b == false then
+  			t.uw[_].setVisible(true)
+  			t.uw[_].redraw()
+  		else
+  			t.uw[_].setVisible(false)
+  		end
+  end
+
+  if app ~= nil then
+ 	 if t.uw[app] then
+ 	 	t.uw[app].setVisible(true)
+ 	 	for _, a in ipairs(minimized) do
+ 	 		if app == a then
+ 	 			table.remove(minimized, _)
+ 	 		end
+ 	 	end
+ 	 	t.uw[app].redraw()
+	 end
+  end
+  running = true
+  onDesktop = true
 end
 
 function drawSoftwareManager()
@@ -692,6 +1074,7 @@ function drawSoftwareManager()
 end
 
 function redrawStartup()
+	onDesktop = false
 	startmenu = window.create(oldTerm, 1, 2, 15, 18)
 	startmenu.setBackgroundColor(colors.cyan)
 	startmenu.setTextColor(colors.black)
@@ -773,6 +1156,7 @@ function redrawDesktop()
 	set = false
 	seachB = false
 	_sftmngr = false
+	onDesktop = true
 end
 
 function readd(replaceChar)
